@@ -9,42 +9,51 @@ def ProcessTable(lines):
     # 2|Undated|||Not in FAPA
     # </tab >
 
-    newline="<tab class =wikitable sep=bar head=top border=1> "
-    # The first line of a table is the header.  It's delimited by either "||" or "||~"
-    header=lines[0]
-    if "||~" in header:
-        header=header.split("||~")
-        header=[h.strip() for h in header]
-    elif "||" in header:
-        header=header.split("||")
-        header=[h.strip() for h in header]
+    # Analyze the table's first line.
+    # If it contains "||~" it's a headerline and will need some special handing in the output.
+    header=AnalyzeTableLine(lines[0])
+    headerline="<tab class=wikitable sep=bar "
+    if "||~" in lines[0]:
+        headerline+="head=top "
+    headerline+="border=1>"
+
+    if "||~" in lines[0]:
+        if header is not None:
+            for head in header:
+                headerline+=head+"|"
+                headerline=headerline[:-1]    # We drop the last "|"
+            lines=lines[1:]     # If we consume the header line here, remove it.
+    out=[headerline]
+
+    # Now process the rest of the lines
+    for line in lines:
+        out.append(GenerateNewTableLine(AnalyzeTableLine(line)))
+    out.append("</tab>")
+    return out
+
+
+def AnalyzeTableLine(line):
+    newline=""
+    if "||~" in line:
+        line=line.split("||~")
+        line=[h.strip() for h in line]
+    elif "||" in line:
+        line=line.split("||")
+        line=[h.strip() for h in line]
     else:
         # Log an error
         pass
+    return line
 
-    for head in header:
-        newline+=head+"|"
-    newline=newline[:-1]    # We drop the last "|"
-    out=[newline]
 
-    # Now process the rest of the lines
-    lines=lines[1:]
-    for line in lines:
-        newline=""
-        if "||~" in line:
-            line=line.split("||~")
-            line=[h.strip() for h in line]
-        elif "||" in line:
-            line=line.split("||")
-            line=[h.strip() for h in line]
-        else:
-            # Log an error
-            pass
-        for cell in line:
-            newline+=cell+"|"
-        newline=newline[:-1]    # We drop the last "|"
-        out.append(newline)
-    return out
+
+def GenerateNewTableLine(line):
+    newline=""
+    for cell in line:
+        newline+=cell+"|"
+    newline=newline[:-1]  # We drop the last "|"
+    return newline
+
 
 #=============================================================
 # Load a file, look for tables, if any are found, change them to SimpleTable format and write the result out
@@ -92,12 +101,11 @@ def ProcessFile(filename, newSite):
 
             # Check to make sure there are no runs of more than two "|" -- that would indicate a table that can't be handled by
             # the SimpleTable thingie.
-            for tline in table:
-                if "||||" in tline:
-                    # Log error message
-                    out.extend(table)   # Since we can't deal with the table as a table, just put it into the output.
-                    out.append(line)
-                    continue
+            if CheckForAdvancedTable(line, out, table):
+                out.extend(table)  # Since we can't deal with the table as a table, just put it into the output.
+                out.append(line)
+                continue
+
             out.extend(ProcessTable(table))
             table=[]
             out.append(line)
@@ -109,7 +117,20 @@ def ProcessFile(filename, newSite):
             out.append(line)
             print("another non-row:   "+line)
 
+    return out
+
+
+def CheckForAdvancedTable(line, out, table):
+    for tline in table:
+        if "||||" in tline:
+            # Log error message
+            return True
+    return False
 
 
 newSite=""
-ProcessFile("../site/apa.txt", newSite)
+page="1967.txt" #""apa.txt"
+newfile=ProcessFile("../site/"+page, newSite)
+with open(page, "w") as file:
+    newfile=[n+"\n" for n in newfile]
+    file.writelines(newfile)
