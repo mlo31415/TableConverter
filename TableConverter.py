@@ -15,6 +15,8 @@ def ProcessTable(lines):
     headerline="<tab class=wikitable sep=bar "
     if "||~" in lines[0]:
         headerline+="head=top "
+    else:
+        headerline+="head= "
     headerline+="border=1>"
 
     if "||~" in lines[0]:
@@ -134,7 +136,8 @@ def CheckForAdvancedTable(line, out, table):
 
 newSite=""
 oldSite="../site/"
-page="1967.txt" #""apa.txt"
+page="1967.txt"
+page="apa.txt"
 newfile=ProcessFile(os.path.join(oldSite, page))
 with open(os.path.join(newSite, page), "w") as file:
     newfile=[n+"\n" for n in newfile]
