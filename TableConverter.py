@@ -101,6 +101,7 @@ def ProcessFile(filename):
         # This is not a continuation of a previous line
         if line.endswith(" _"):
             prevLineContinues=True
+            line=line[:-2]
         if inTable and line.startswith("||"):  # Another row of an existing table
             table.append(line)
             print("another row:   "+line)
@@ -111,7 +112,7 @@ def ProcessFile(filename):
 
             # Check to make sure there are no runs of more than two "|" -- that would indicate a table that can't be handled by
             # the SimpleTable thingie.
-            if CheckForAdvancedTable(line, out, table):
+            if CheckForAdvancedTable(table):
                 out.extend(table)  # Since we can't deal with the table as a table, just put it into the output.
                 out.append(line)
                 continue
@@ -127,10 +128,20 @@ def ProcessFile(filename):
             out.append(line)
             print("another non-row:   "+line)
 
+    if len(table) > 0:
+        # Check to make sure there are no runs of more than two "|" -- that would indicate a table that can't be handled by
+        # the SimpleTable thingie.
+        if CheckForAdvancedTable(table):
+            out.extend(table)  # Since we can't deal with the table as a table, just put it into the output.
+            out.append(line)
+
+        out.extend(ProcessTable(table))
+        table=[]
+        out.append(line)
     return out
 
 
-def CheckForAdvancedTable(line, out, table):
+def CheckForAdvancedTable(table):
     for tline in table:
         if "||||" in tline:
             # Log error message
