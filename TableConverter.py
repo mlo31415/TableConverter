@@ -34,6 +34,8 @@ def ProcessTable(lines):
     return out
 
 
+#=============================================================
+# Given a complete line in a table, split it into individual cells.
 def AnalyzeTableLine(line):
     if "||~" in line:
         line=line.split("||~")
@@ -53,6 +55,8 @@ def AnalyzeTableLine(line):
     return line
 
 
+#=============================================================
+# Given a list of cells, generate a MediaWiki SimpleTable line
 def GenerateNewTableLine(line):
     newline=""
     for cell in line:
@@ -62,7 +66,7 @@ def GenerateNewTableLine(line):
 
 
 #=============================================================
-# Load a file, look for tables, if any are found, change them to SimpleTable format and write the result out
+# Load a file, look for tables, if any are found, change them to SimpleTable format and return the result
 def ProcessFile(filename):
     if not os.path.exists(filename):
         #log.Write()
