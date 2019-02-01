@@ -33,7 +33,6 @@ def ProcessTable(lines):
 
 
 def AnalyzeTableLine(line):
-    newline=""
     if "||~" in line:
         line=line.split("||~")
         line=[h.strip() for h in line]
@@ -43,8 +42,13 @@ def AnalyzeTableLine(line):
     else:
         # Log an error
         pass
-    return line
 
+    # We get empty list items due to the leading and trailing table "||"s.  Delete them.
+    if line[0] == "":
+        line=line[1:]
+    if line[-1] == "":
+        line=line[:-1]
+    return line
 
 
 def GenerateNewTableLine(line):
