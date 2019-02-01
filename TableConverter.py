@@ -61,7 +61,7 @@ def GenerateNewTableLine(line):
 
 #=============================================================
 # Load a file, look for tables, if any are found, change them to SimpleTable format and write the result out
-def ProcessFile(filename, newSite):
+def ProcessFile(filename):
     if not os.path.exists(filename):
         #log.Write()
         return
@@ -133,8 +133,9 @@ def CheckForAdvancedTable(line, out, table):
 
 
 newSite=""
+oldSite="../site/"
 page="1967.txt" #""apa.txt"
-newfile=ProcessFile("../site/"+page, newSite)
-with open(page, "w") as file:
+newfile=ProcessFile(os.path.join(oldSite, page))
+with open(os.path.join(newSite, page), "w") as file:
     newfile=[n+"\n" for n in newfile]
     file.writelines(newfile)
