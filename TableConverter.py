@@ -62,6 +62,7 @@ def ProcessFile(filename):
                 table=[]
                 out.append(line)
                 line=""
+                print("this is an advanced table")
                 continue
 
             out.extend(ProcessTable(table))
@@ -85,6 +86,7 @@ def ProcessFile(filename):
             table=[]
             out.append(line)
             line=""
+            print("this is an advanced table")
 
         if len(table) > 0:
             out.extend(ProcessTable(table))
@@ -178,6 +180,8 @@ newSite=""
 oldSite="../site/"
 page="1967.txt"
 page="apa.txt"
+page="fanzine.txt"
+page="boskone.txt"
 newfile=ProcessFile(os.path.join(oldSite, page))
 with open(os.path.join(newSite, page), "w") as file:
     newfile=[n+"\n" for n in newfile]
