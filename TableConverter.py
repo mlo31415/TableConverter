@@ -107,18 +107,18 @@ def ProcessTable(table):
     # Generate the output table's first line.
     # If the input table contains "||~" it's a headerline and will need some special handing in the output.
     header=AnalyzeTableLine(table[0])
-    headerline="<tab class=wikitable sep=bar "
+    headerline="<tab class=wikitable sep=barbar "
     if "||~" in table[0]:
         headerline+="head=top "
     else:
         headerline+="head= "
-    headerline+="border=1>"
+    headerline+="border=1>\n"
 
     out=[]
     if "||~" in table[0]:
         if header is not None:
             for head in header:
-                headerline+=head+"|"
+                headerline+=head+"||"
             headerline=headerline[:-1]    # We drop the last "|"
             lines=table[1:]     # If we consume the header line here, remove it.
     out.append(headerline)
@@ -157,8 +157,8 @@ def AnalyzeTableLine(line):
 def GenerateNewTableLine(line):
     newline=""
     for cell in line:
-        newline+=cell+"|"
-    newline=newline[:-1]  # We drop the last "|"
+        newline+=cell+"||"
+    newline=newline[:-2]  # We drop the last "||"
     return newline
 
 
