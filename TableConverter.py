@@ -54,17 +54,6 @@ def ProcessFile(filename):
             inTable=False
             # Process Table
             print("the table ends:   "+line)
-
-            # Check to make sure there are no runs of more than two "|" -- that would indicate a table that can't be handled by
-            # the SimpleTable thingie.
-            if CheckForAdvancedTable(table):
-                out.extend(table)  # Since we can't deal with the table as a table, just put it into the output.
-                table=[]
-                out.append(line)
-                line=""
-                print("this is an advanced table")
-                continue
-
             out.extend(ProcessTable(table))
             table=[]
             out.append(line)
@@ -79,22 +68,13 @@ def ProcessFile(filename):
             line=""
 
     if len(table) > 0:
-        # Check to make sure there are no runs of more than two "|" -- that would indicate a table that can't be handled by
-        # the SimpleTable thingie.
-        if CheckForAdvancedTable(table):
-            out.extend(table)  # Since we can't deal with the table as a table, just put it into the output.
-            table=[]
-            out.append(line)
-            line=""
-            print("this is an advanced table")
-
-        if len(table) > 0:
-            out.extend(ProcessTable(table))
-            print("add a left-over table and a line::   "+line)
-            table=[]
-        if len(line) > 0:
-            out.append(line)
-            line=""
+        out.extend(ProcessTable(table))
+        print("add a left-over table")
+        table=[]
+    if len(line) > 0:
+        out.append(line)
+        print("add the line:    "+line)
+        line=""
     return out
 
 
@@ -110,33 +90,41 @@ def CheckForAdvancedTable(table):
 
 #=============================================================
 # Process a single table
-def ProcessTable(lines):
-    # < tab class =wikitable sep=bar head=[top] border=1 > Issue|Date|Pages|Notes|FAPA mailing
-    # 1|1979|||134
-    # 2|Undated|||Not in FAPA
-    # </tab >
+# There are three kinds of tables:
+#   Tables with merged cells
+#   Fancy1 and Facy 2 quotes
+#   Ordinary tables (no merged cells, no "Fancyclopedia 1" or "Fancyclopedia 1" in the first line).  Ordinary tables may or may not have a header row
+def ProcessTable(table):
+
+    # First, check to make sure there are no runs of more than two "|" -- that would indicate a table that can't be handled by
+    # the SimpleTable thingie.
+    if CheckForAdvancedTable(table):
+        print("this is an advanced table")
+        return table
+
+    # The second case is a Fancy 1 or Fancy 2 quote table
 
     # Generate the output table's first line.
     # If the input table contains "||~" it's a headerline and will need some special handing in the output.
-    header=AnalyzeTableLine(lines[0])
+    header=AnalyzeTableLine(table[0])
     headerline="<tab class=wikitable sep=bar "
-    if "||~" in lines[0]:
+    if "||~" in table[0]:
         headerline+="head=top "
     else:
         headerline+="head= "
     headerline+="border=1>"
 
     out=[]
-    if "||~" in lines[0]:
+    if "||~" in table[0]:
         if header is not None:
             for head in header:
                 headerline+=head+"|"
             headerline=headerline[:-1]    # We drop the last "|"
-            lines=lines[1:]     # If we consume the header line here, remove it.
+            lines=table[1:]     # If we consume the header line here, remove it.
     out.append(headerline)
 
     # Now process the rest of the lines
-    for line in lines:
+    for line in table:
         out.append(GenerateNewTableLine(AnalyzeTableLine(line)))
     out.append("</tab>")
     return out
