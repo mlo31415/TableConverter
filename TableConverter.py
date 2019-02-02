@@ -131,7 +131,7 @@ def ProcessTable(lines):
         if header is not None:
             for head in header:
                 headerline+=head+"|"
-                headerline=headerline[:-1]    # We drop the last "|"
+            headerline=headerline[:-1]    # We drop the last "|"
             lines=lines[1:]     # If we consume the header line here, remove it.
     out.append(headerline)
 
@@ -146,9 +146,9 @@ def ProcessTable(lines):
 # Given a complete line in a table, split it into individual cells.
 def AnalyzeTableLine(line):
     if "||~" in line:
-        cells=line.split("||~")
-        cells=[h.strip() for h in cells]
-    elif "||" in line:
+        # The header line delimiters can be either "||" or "||~"
+        line=line.replace("||~", "||")
+    if "||" in line:
         cells=line.split("||")
         cells=[h.strip() for h in cells]
     else:
@@ -178,8 +178,9 @@ def GenerateNewTableLine(line):
 
 newSite=""
 oldSite="../site/"
-page="1967.txt"
+page="alpha.txt"
 page="apa.txt"
+page="1967.txt"
 page="fanzine.txt"
 page="boskone.txt"
 newfile=ProcessFile(os.path.join(oldSite, page))
