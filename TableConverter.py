@@ -1,5 +1,5 @@
 import os
-
+import re as RegEx
 
 
 #=============================================================
@@ -79,13 +79,40 @@ def ProcessFile(filename):
 
 
 #=============================================================
-# Look for advanced table features (like merged cells) which the MediaWiki SimpleTable can't handle.
+# Check for advanced table features (like merged cells) which the MediaWiki SimpleTable can't handle.
 def CheckForAdvancedTable(table):
     for tline in table:
         if "||||" in tline:
             # Log error message
             return True
     return False
+
+
+#=============================================================
+# Check for Fancy table: Is this table a quote from Fancy 1 or Fancy 2?
+# If 'yes' return "fancy1" or "facny2".  If 'no', return None
+def CheckForFancyTable(table):
+    if table == None or len(table) == 0:
+        return None
+
+    # The fancy table designation is always in the first line
+    # The line is something like "|| from [[[Fancyclopedia 1]]]  ca. 1944 ||"
+    # We'll look for just "from [[[Fancyclopedia 1" at the beginning of the text.  We'll allow for case variations, with or without the "[[[", and both 1 and 2
+    # TODO: Need to add in support for supplement
+
+    # First, remove any "||" as we know it's a table line and remove "[[[" is they're redundant for IDing.
+    line=table[0].replace("||", "").replace("[[[", "")
+
+    pattern="^\s*[Ff]rom\s*Fancyclopedia\s*([12])"
+    m=RegEx.match(pattern, line)
+    if m is None:
+        return None
+    if len(m.groups()) != 1:
+        return None
+
+    if m.groups()[0] == "1":
+        return "fancy1"
+    return "fancy2"
 
 
 #=============================================================
@@ -102,31 +129,38 @@ def ProcessTable(table):
         print("this is an advanced table")
         return table
 
-    # The second case is a Fancy 1 or Fancy 2 quote table
-
-    # Generate the output table's first line.
-    # If the input table contains "||~" it's a headerline and will need some special handing in the output.
-    header=AnalyzeTableLine(table[0])
-    headerline="<tab class=wikitable sep=barbar "
-    if "||~" in table[0]:
-        headerline+="head=top "
-    else:
-        headerline+="head= "
-    headerline+="border=1>\n"
-
     out=[]
-    if "||~" in table[0]:
-        if header is not None:
-            for head in header:
-                headerline+=head+"||"
-            headerline=headerline[:-1]    # We drop the last "|"
-            lines=table[1:]     # If we consume the header line here, remove it.
-    out.append(headerline)
+    # The second case is a Fancy 1 or Fancy 2 quote table
+    fancy=CheckForFancyTable(table)
+    if fancy is not None:
+        out.append("{{"+fancy+"|text=")
+        for line in table[1:]:      # We skip the 1st line
+            out.append(GenerateNewTableLine(AnalyzeTableLine(line)))
+        out.append("}}")
+    else:
+        # Generate the output table's first line.
+        # If the input table contains "||~" it's a headerline and will need some special handing in the output.
+        header=AnalyzeTableLine(table[0])
+        headerline="<tab class=wikitable sep=barbar "
+        if "||~" in table[0]:
+            headerline+="head=top "
+        else:
+            headerline+="head= "
+        headerline+="border=1>\n"
 
-    # Now process the rest of the lines
-    for line in table:
-        out.append(GenerateNewTableLine(AnalyzeTableLine(line)))
-    out.append("</tab>")
+        if "||~" in table[0]:
+            if header is not None:
+                for head in header:
+                    headerline+=head+"||"
+                headerline=headerline[:-1]    # We drop the last "|"
+                lines=table[1:]     # If we consume the header line here, remove it.
+        out.append(headerline)
+
+        # Now process the rest of the lines
+        for line in table:
+            out.append(GenerateNewTableLine(AnalyzeTableLine(line)))
+        out.append("</tab>")
+
     return out
 
 
@@ -171,6 +205,7 @@ page="apa.txt"
 page="1967.txt"
 page="fanzine.txt"
 page="boskone.txt"
+page="a.txt"
 newfile=ProcessFile(os.path.join(oldSite, page))
 with open(os.path.join(newSite, page), "w") as file:
     newfile=[n+"\n" for n in newfile]
