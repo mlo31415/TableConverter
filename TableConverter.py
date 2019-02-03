@@ -80,12 +80,12 @@ def ProcessFile(filename):
 
 #=============================================================
 # Check for Fancy table: Is this table a quote from Fancy 1 or Fancy 2?
-# If 'yes' return "fancy1" or "facny2".  If 'no', return None
+# If 'yes' return "fancy1" or "fancy2".  If 'no', return None
 def CheckForFancyTable(table):
     if table == None or len(table) == 0:
         return None
 
-    # The fancy table designation is always in the first line
+    # The Fancy table designation is always in the first line
     # The line is something like "|| from [[[Fancyclopedia 1]]]  ca. 1944 ||"
     # We'll look for just "from [[[Fancyclopedia 1" at the beginning of the text.  We'll allow for case variations, with or without the "[[[", and both 1 and 2
     # TODO: Need to add in support for supplement
@@ -108,9 +108,13 @@ def CheckForFancyTable(table):
 #=============================================================
 # Convert Wikidot's column spanning codes to SimpleTable's
 def ConvertColspans(line):
+    line=line.replace("||||||||||||||||~", '||~ colspan="8"|')
+    line=line.replace("||||||||||||||||", '|| colspan="8"|')
+    line=line.replace("||||||||||||||~", '||~ colspan="7"|')
+    line=line.replace("||||||||||||||", '|| colspan="7"|')
     line=line.replace("||||||||||||~", '||~ colspan="6"|')
     line=line.replace("||||||||||||", '|| colspan="6"|')
-    line=line.replace("||||||||||", '||~ colspan="5"|')
+    line=line.replace("||||||||||~", '||~ colspan="5"|')
     line=line.replace("||||||||||", '|| colspan="5"|')
     line=line.replace("||||||||~", '||~ colspan="4"|')
     line=line.replace("||||||||", '|| colspan="4"|')
