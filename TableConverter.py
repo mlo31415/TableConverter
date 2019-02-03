@@ -96,16 +96,16 @@ def CheckForFancyTable(table):
     # First, remove any "||" as we know it's a table line and remove "[[[" is they're redundant for IDing.
     line=table[0].replace("||", "").replace("[[[", "")
 
-    pattern="^\s*[Ff]rom\s*Fancyclopedia\s*([12])"
-    m=RegEx.match(pattern, line)
+    pattern="(.*)\s*[Ff]rom\s*Fancyclopedia\s*([12])"
+    m=RegEx.search(pattern, line)
     if m is None:
-        return None
-    if len(m.groups()) != 1:
-        return None
+        return None, None
+    if len(m.groups()) != 2:
+        return None, None
 
-    if m.groups()[0] == "1":
-        return "fancy1"
-    return "fancy2"
+    if m.groups()[1] == "1":
+        return "fancy1", m.groups()[0]
+    return "fancy2", m.groups()[0]
 
 
 #=============================================================
@@ -177,9 +177,11 @@ def ProcessTable(table):
 
     out=[]
     # The second case is a Fancy 1 or Fancy 2 quote table
-    fancy=CheckForFancyTable(table)
+    fancy, prefix=CheckForFancyTable(table)
     if fancy is not None:
         out.append("{{"+fancy+"|text=")
+        if prefix is not None and prefix.strip() is not "":
+            out.append(prefix)
         for line in table[1:]:      # We skip the 1st line
             out.append(GenerateNewTableLine(AnalyzeTableLine(line)))
         out.append("}}")
@@ -213,13 +215,14 @@ def ProcessTable(table):
 newSite=""
 oldSite="../site/"
 page="alpha.txt"
-page="apa.txt"
 page="1967.txt"
 page="fanzine.txt"
 page="a.txt"
 page="1983-duff-results.txt"
 page="boskone.txt"
 page="individ-fanzine.txt"
+page="joe-fann.txt"
+page="apa.txt"
 newfile=ProcessFile(os.path.join(oldSite, page))
 with open(os.path.join(newSite, page), "w") as file:
     newfile=[n+"\n" for n in newfile]
