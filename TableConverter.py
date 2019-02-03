@@ -35,43 +35,46 @@ def ProcessFile(filename):
             if inTable:
                 table.append(line)
                 print("another continued row line:   "+line)
+                line=None
             else:
                 out.append(line)
                 print("another continued line:   "+line)
+                line=None
 
             continue
 
         # This is not a continuation of a previous line
-        if line.endswith(" _"):
-            prevLineContinues=True
-            print("remove ' _' from:   "+line)
-            line=line[:-2]
-        if inTable and line.startswith("||"):  # Another row of an existing table
-            table.append(line)
-            print("another row:   "+line)
-            line=""
-        elif inTable and not line.startswith("||"):    # The end of an existing table
-            inTable=False
-            # Process Table
-            print("the table ends:   "+line)
-            out.extend(ProcessTable(table))
-            table=[]
-            out.append(line)
-        elif not inTable and line.startswith("||"):    # The start of a new table
-            inTable=True
-            table.append(line)
-            print("a new table:   "+line)
-            line=""
-        elif not inTable and not line.startswith("||"):    # Just another non-table line
-            out.append(line)
-            print("another non-row:   "+line)
-            line=""
+        if line is not None:
+            if line.endswith(" _"):
+                prevLineContinues=True
+                print("remove ' _' from:   "+line)
+                line=line[:-2]
+            if inTable and line.startswith("||"):  # Another row of an existing table
+                table.append(line)
+                print("another row:   "+line)
+                line=""
+            elif inTable and not line.startswith("||"):    # The end of an existing table
+                inTable=False
+                # Process Table
+                print("the table ends:   "+line)
+                out.extend(ProcessTable(table))
+                table=[]
+                out.append(line)
+            elif not inTable and line.startswith("||"):    # The start of a new table
+                inTable=True
+                table.append(line)
+                print("a new table:   "+line)
+                line=""
+            elif not inTable and not line.startswith("||"):    # Just another non-table line
+                out.append(line)
+                print("another non-row:   "+line)
+                line=""
 
     if len(table) > 0:
         out.extend(ProcessTable(table))
         print("add a left-over table")
         table=[]
-    if len(line) > 0:
+    if line is not None and len(line) > 0:
         out.append(line)
         print("add the line:    "+line)
         line=""
@@ -216,6 +219,7 @@ page="fanzine.txt"
 page="a.txt"
 page="1983-duff-results.txt"
 page="boskone.txt"
+page="individ-fanzine.txt"
 newfile=ProcessFile(os.path.join(oldSite, page))
 with open(os.path.join(newSite, page), "w") as file:
     newfile=[n+"\n" for n in newfile]
