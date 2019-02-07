@@ -137,16 +137,15 @@ def AnalyzeTableLine(line):
         line=line.replace("||~", "||")
     if "||" in line:
         cells=line.split("||")
-        cells=[h.strip() for h in cells]
     else:
         # Log an error?
         cells=[line]
         pass
 
     # We get empty list items due to the leading and trailing table "||"s.  Delete them.
-    if len(cells) > 1 and cells[0] == "":
+    if len(cells) > 1 and cells[0].strip() == "":
         cells=cells[1:]
-    if len(cells) > 1 and cells[-1] == "":
+    if len(cells) > 1 and cells[-1].strip() == "":
         cells=cells[:-1]
     return cells
 
@@ -223,6 +222,9 @@ page="boskone.txt"
 page="individ-fanzine.txt"
 page="joe-fann.txt"
 page="apa.txt"
+page="scintillation.txt"
+page="1983-duff-results.txt"
+page="boskone.txt"
 newfile=ProcessFile(os.path.join(oldSite, page))
 with open(os.path.join(newSite, page), "w") as file:
     newfile=[n+"\n" for n in newfile]
