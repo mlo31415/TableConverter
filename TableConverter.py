@@ -6,8 +6,7 @@ import re as RegEx
 # Load a file, look for tables, if any are found, change them to SimpleTable format and return the result
 def ProcessFile(filename):
     if not os.path.exists(filename):
-        #log.Write()
-        return
+        raise(ValueError, "ProcessFile: Can't open file '"+filename+"'")
 
     # Read the file
     with open(filename) as file:
@@ -18,6 +17,7 @@ def ProcessFile(filename):
     # (Remember that lines can be continued by ending them with " _")
     out=[]
     table=[]
+    line=""
     inTable=False
     prevLineContinues=False
     for line in source:
@@ -73,11 +73,9 @@ def ProcessFile(filename):
     if len(table) > 0:
         out.extend(ProcessTable(table))
         print("add a left-over table")
-        table=[]
     if line is not None and len(line) > 0:
         out.append(line)
         print("add the line:    "+line)
-        line=""
     return out
 
 
@@ -85,7 +83,7 @@ def ProcessFile(filename):
 # Check for Fancy table: Is this table a quote from Fancy 1 or Fancy 2?
 # If 'yes' return "fancy1" or "fancy2".  If 'no', return None
 def CheckForFancyTable(table):
-    if table == None or len(table) == 0:
+    if table is None or len(table) == 0:
         return None
 
     # The Fancy table designation is always in the first line
@@ -200,11 +198,11 @@ def ProcessTable(table):
                 for head in header:
                     headerline+=head+"||"
                 headerline=headerline[:-2]    # We drop the last "||"
-                lines=table[1:]     # If we consume the header line here, remove it.
+                table=table[1:]     # If we consume the header line here, remove it.
         out.append(headerline)
 
         # Now process the rest of the lines
-        for line in table[1:]:
+        for line in table:
             out.append(GenerateNewTableLine(AnalyzeTableLine(line)))
         out.append("</tab>")
 
@@ -213,18 +211,20 @@ def ProcessTable(table):
 
 newSite=""
 oldSite="../site/"
+# page="alpha.txt"
+# page="1967.txt"
+# page="fanzine.txt"
+# page="a.txt"
+# page="1983-duff-results.txt"
+# page="boskone.txt"
+# page="individ-fanzine.txt"
+# page="joe-fann.txt"
+# page="apa.txt"
+# page="scintillation.txt"
+# page="1983-duff-results.txt"
+# page="nova-award.txt"
+# page="interlineations.txt"
 page="alpha.txt"
-page="1967.txt"
-page="fanzine.txt"
-page="a.txt"
-page="1983-duff-results.txt"
-page="boskone.txt"
-page="individ-fanzine.txt"
-page="joe-fann.txt"
-page="apa.txt"
-page="scintillation.txt"
-page="1983-duff-results.txt"
-page="boskone.txt"
 newfile=ProcessFile(os.path.join(oldSite, page))
 with open(os.path.join(newSite, page), "w") as file:
     newfile=[n+"\n" for n in newfile]
